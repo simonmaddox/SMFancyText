@@ -9,9 +9,6 @@
 #import <UIKit/UIKit.h>
 #import "SMFancyText.h"
 
-@interface SMFancyTextViewController : UIViewController <SMFancyTextDelegate> {
-
-}
+@interface SMFancyTextViewController : UIViewController <SMFancyTextDelegate>
 
 @end
-

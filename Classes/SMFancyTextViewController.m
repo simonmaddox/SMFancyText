@@ -22,8 +22,7 @@
 	[fancyText release];
 }
 
-- (void) linkPressed:(UIButton *) link
-{
+- (void)fancyText:(SMFancyText *)fancyText linkPressed:(UIButton *)link {
 	NSLog(@"Opening: %@", [[link titleLabel] text]);
 }
 

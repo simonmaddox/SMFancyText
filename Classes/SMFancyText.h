@@ -10,32 +10,25 @@
 #import <libxml/htmlparser.h>
 
 @class SMFancyTextElement;
-
+@class SMFancyText;
 
 @protocol SMFancyTextDelegate <NSObject>
 
-- (void) linkPressed:(UIButton *)link;
+- (void)fancyText:(SMFancyText *)fancyText linkPressed:(UIButton *)link;
 
 @end
 
 @interface SMFancyText : UIView {
-	NSString *text;
-	id <SMFancyTextDelegate> delegate;
-	
-	@private
-	UIColor *_textColor;
-	htmlParserCtxtPtr context;
-	NSMutableArray *elements;
-	SMFancyTextElement *currentElement;
-	CGPoint currentPosition;
+@private
+	htmlParserCtxtPtr _context;
+	CGPoint _currentPosition;
 }
 
 @property (nonatomic, retain) UIColor *textColor;
 @property (nonatomic, assign) id <SMFancyTextDelegate> delegate;
-
 @property (nonatomic, retain) SMFancyTextElement *currentElement;
 @property (nonatomic, retain) NSMutableArray *elements;
 
-- (void) setText: (NSString *) newText;
+- (void)setText:(NSString *)newText;
 
 @end

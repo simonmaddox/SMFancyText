@@ -19,4 +19,3 @@
 @property (nonatomic, retain) IBOutlet SMFancyTextViewController *viewController;
 
 @end
-
