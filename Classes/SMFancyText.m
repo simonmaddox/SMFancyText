@@ -171,15 +171,13 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 }
 
 - (void)setText:(NSString *)newText {
-
-	if (_context) {
-		htmlFreeParserCtxt(_context);
-	}
 	
 	NSData *data = [[NSString stringWithFormat:@"<SMFancyText>%@</SMFancyText>", [newText stringByReplacingOccurrencesOfString:@"\n" withString:@""]] dataUsingEncoding:NSUTF8StringEncoding];
 
-	_context = htmlCreatePushParserCtxt(&simpleSAXHandlerStruct, self, NULL, 0, NULL, 0);
+	_context = htmlCreatePushParserCtxt(&simpleSAXHandlerStruct, self, NULL, 0, NULL, XML_CHAR_ENCODING_UTF8);
 	htmlParseChunk(_context, (const char *)[data bytes], [data length], 0);
+	htmlFreeParserCtxt(_context);
+	_context = NULL;
 }
 
 - (NSString *)removeLeadingWhiteSpaceFromString:(NSString *)string {
@@ -196,11 +194,6 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 }
 
 - (void)dealloc {
-
-	if (_context) {
-		htmlFreeParserCtxt(_context);
-		_context = NULL;
-	}
 
 	[_currentElement release];
 	[_elements release];
