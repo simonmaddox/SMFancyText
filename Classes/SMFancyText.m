@@ -40,6 +40,8 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 }
 
 - (void)drawRect:(CGRect)rect {
+
+	_currentPosition = CGPointMake(0, 0);
 	
 	CGContextRef graphicsContext = UIGraphicsGetCurrentContext();
 	
