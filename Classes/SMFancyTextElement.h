@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 typedef NS_ENUM(NSUInteger, SMFancyTextElementStyle) {
 	SMFancyTextElementStyleNormal,
@@ -13,10 +14,7 @@ typedef NS_ENUM(NSUInteger, SMFancyTextElementStyle) {
 	SMFancyTextElementStyleImageLink
 };
 
-@interface SMFancyTextElement : NSObject {
-@private
-	UIColor *_textColor;
-}
+@interface SMFancyTextElement : NSObject
 
 @property (nonatomic, retain) NSString *text;
 @property SMFancyTextElementStyle style;
