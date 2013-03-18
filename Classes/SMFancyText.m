@@ -78,7 +78,7 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 			_currentPosition.x = 0;
 			_currentPosition.y = _currentPosition.y + 18;
 		} else {
-			[self drawString:[[self.elements objectAtIndex:i] text] withFont:font atPoint:_currentPosition inRect:rect recursive:YES style:[[self.elements objectAtIndex:i] style] withLink:[[self.elements objectAtIndex:i] link] image:[[self.elements objectAtIndex:i] imageName]];
+			[self drawString:[[self.elements objectAtIndex:i] text] withFont:font atPoint:_currentPosition inRect:rect recursive:YES style:(SMFancyTextElementStyle)[[self.elements objectAtIndex:i] style] withLink:[[self.elements objectAtIndex:i] link] image:[[self.elements objectAtIndex:i] imageName]];
 		}
 		
 		if ([[self.elements objectAtIndex:i] style] == SMFancyTextElementStyleBlockQuote) {
