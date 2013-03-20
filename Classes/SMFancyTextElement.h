@@ -16,6 +16,9 @@ typedef NS_ENUM(NSUInteger, SMFancyTextElementStyle) {
 
 @interface SMFancyTextElement : NSObject
 
++ (instancetype)textElement;
++ (instancetype)textElementWithStyle:(SMFancyTextElementStyle)style;
+
 @property (nonatomic, retain) NSString *text;
 @property SMFancyTextElementStyle style;
 @property (nonatomic, retain) NSString *link;

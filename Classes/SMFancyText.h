@@ -18,11 +18,7 @@
 
 @end
 
-@interface SMFancyText : UIView {
-@private
-	htmlParserCtxtPtr _context;
-	CGPoint _currentPosition;
-}
+@interface SMFancyText : UIView
 
 @property (nonatomic, retain) UIColor *textColor;
 @property (nonatomic, assign) id <SMFancyTextDelegate> delegate;
