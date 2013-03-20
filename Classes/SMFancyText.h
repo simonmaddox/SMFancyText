@@ -20,7 +20,6 @@
 
 @interface SMFancyText : UIView {
 @private
-	htmlParserCtxtPtr _context;
 	CGPoint _currentPosition;
 }
 

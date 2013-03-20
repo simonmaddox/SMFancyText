@@ -2,6 +2,18 @@
 
 @implementation SMFancyTextElement
 
++ (instancetype)textElement {
+	return [self textElementWithStyle:SMFancyTextElementStyleNormal];
+}
+
++ (instancetype)textElementWithStyle:(SMFancyTextElementStyle)style {
+	SMFancyTextElement *element = [[[SMFancyTextElement alloc] init] autorelease];
+
+	element.style = style;
+
+	return element;
+}
+
 - (NSString *)description {
 	return [NSString stringWithFormat:@"SMFancyTextElement ::  %@ - %d", _text, _style];
 }
