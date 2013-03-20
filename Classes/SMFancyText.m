@@ -45,18 +45,18 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 
 - (void)drawRect:(CGRect)rect {
 
-	_currentPosition = CGPointMake(0, 0);
-	
-	CGContextRef graphicsContext = UIGraphicsGetCurrentContext();
-	
+	CGPoint currentPosition = CGPointMake(0, 0);
+
+	CGContextRef context = UIGraphicsGetCurrentContext();
+
 	if (!self.textColor) self.textColor = [UIColor blackColor];
-	
-	CGContextSetFillColorWithColor(graphicsContext, [self.textColor CGColor]);
-	
+
+	CGContextSetFillColorWithColor(context, [self.textColor CGColor]);
+
     for (SMFancyTextElement *element in self.elements) {
 
 		UIFont *font = nil;
-		
+
 		switch (element.style) {
 			case SMFancyTextElementStyleBold:
 			case SMFancyTextElementStyleBlockQuote:
@@ -69,114 +69,158 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 				font = [UIFont systemFontOfSize:SMFontSize];
 				break;
 		}
-		
+
 		if (element.style == SMFancyTextElementStyleBlockQuote) {
-			CGContextFillRect(graphicsContext, CGRectMake(0, _currentPosition.y - 5, rect.size.width, 2));
+			CGContextFillRect(context, CGRectMake(0, currentPosition.y - 5, rect.size.width, 2));
 		}
 
 		if (element.style == SMFancyTextElementStyleParagraphBreak) {
-			_currentPosition.x = 0;
-			_currentPosition.y = _currentPosition.y + (18 * 2);
+			currentPosition.x = 0;
+			currentPosition.y = currentPosition.y + (18 * 2);
 		} else if (element.style == SMFancyTextElementStyleNewLine) {
-			_currentPosition.x = 0;
-			_currentPosition.y = _currentPosition.y + 18;
+			currentPosition.x = 0;
+			currentPosition.y = currentPosition.y + 18;
 		} else {
-			[self drawString:element.text withFont:font atPoint:_currentPosition inRect:rect recursive:YES style:element.style withLink:element.link image:element.imageName];
+			currentPosition = [self drawString:element.text withFont:font atPoint:currentPosition inRect:rect recursive:YES style:element.style withLink:element.link image:element.imageName];
 		}
-		
+
 		if (element.style == SMFancyTextElementStyleBlockQuote) {
-			CGContextFillRect(graphicsContext, CGRectMake(0, _currentPosition.y + 20, rect.size.width, 2));
+			CGContextFillRect(context, CGRectMake(0, currentPosition.y + 20, rect.size.width, 2));
 		}
 	}
 }
 
-- (void)drawString:(NSString *)string
-		  withFont:(UIFont *)font
-		   atPoint:(CGPoint)point
-			inRect:(CGRect)rect
-		 recursive:(BOOL)recursive
-			 style:(SMFancyTextElementStyle)style
-		  withLink:(NSString *)link
-			 image:(NSString *)image {
+- (void)appendButtonWithTitle:(NSString *)title andFrame:(CGRect)frame {
+	UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+
+	[button setFrame:frame];
+	[button setTitle:title forState:UIControlStateNormal];
+	[button setTitleColor:[UIColor clearColor] forState:UIControlStateNormal];
+	[button addTarget:self action:@selector(linkTouchUp:) forControlEvents:UIControlEventTouchUpInside];
+	[button addTarget:self action:@selector(linkPressed:) forControlEvents:UIControlEventTouchDown];
+
+	[self addSubview:button];
+}
+
+- (void)appendLinkWithText:(NSString *)text
+				   andLink:(NSString *)link
+				 withFrame:(CGRect)frame
+				   andFont:(UIFont *)font
+				   atPoint:(CGPoint)point
+				 inContext:(CGContextRef)context{
 	
+	[self appendButtonWithTitle:link andFrame:frame];
+
+	CGContextSetFillColorWithColor(context, [[UIColor colorWithRed:SMLinkRed / 255.0 green:SMLinkGreen / 255.0 blue:SMLinkBlue / 255.0 alpha:1] CGColor]);
+	CGContextFillRect(context, CGRectMake(point.x, point.y + (frame.size.height - 2), frame.size.width, 1));
+	[text drawInRect:frame withFont:font];
+	CGContextSetFillColorWithColor(context, [self.textColor CGColor]);
+}
+
+- (CGPoint)appendImageWithName:(NSString *)name andLink:(NSString *)link atPoint:(CGPoint)point {
+	UIImage *image = [UIImage imageNamed:name];
+
+	CGRect imageFrame = CGRectMake((self.frame.size.width / 2) - (image.size.width / 2), point.y, image.size.width, image.size.height);
+	[image drawInRect:imageFrame];
+
+	if (link) {
+		[self appendButtonWithTitle:link andFrame:imageFrame];
+	}
+	
+	point.y += image.size.height;
+
+	return point;
+}
+
+- (CGPoint)drawString:(NSString *)string
+			 withFont:(UIFont *)font
+			  atPoint:(CGPoint)point
+			   inRect:(CGRect)rect
+			recursive:(BOOL)recursive
+				style:(SMFancyTextElementStyle)style
+			 withLink:(NSString *)link
+				image:(NSString *)image {
+
 	if (point.x == 0) {
 		string = [self removeLeadingWhiteSpaceFromString:string];
 	}
-	
+
 	CGSize size = [string sizeWithFont:font];
-	
+
 	if (point.x + size.width > rect.size.width) {
 		if (recursive) {
 			NSArray *words = [string componentsSeparatedByString:@" "];
 			for (NSUInteger i = 0; i < [words count]; ++i) {
 				if (i < [words count] - 1) {
-					[self drawString:[NSString stringWithFormat:@"%@ ", [words objectAtIndex:i]] withFont:font atPoint:_currentPosition inRect:rect recursive:NO style:style withLink:link image:image];
+					point = [self drawString:[NSString stringWithFormat:@"%@ ", [words objectAtIndex:i]]
+									withFont:font
+									 atPoint:point
+									  inRect:rect
+								   recursive:NO
+									   style:style
+									withLink:link
+									   image:image];
 				} else {
-					[self drawString:[NSString stringWithFormat:@"%@", [words objectAtIndex:i]] withFont:font atPoint:_currentPosition inRect:rect recursive:NO style:style withLink:link image:image];
+					point = [self drawString:[NSString stringWithFormat:@"%@", [words objectAtIndex:i]]
+									withFont:font
+									 atPoint:point
+									  inRect:rect
+								   recursive:NO
+									   style:style
+									withLink:link
+									   image:image];
 				}
 			}
-			return;
+			return point;
 		} else {
-			[self drawString:string withFont:font atPoint:CGPointMake(0, _currentPosition.y + size.height) inRect:rect recursive:NO style:style withLink:link image:image];
-			return;
+			point = [self drawString:string
+							withFont:font
+							 atPoint:CGPointMake(0, point.y + size.height)
+							  inRect:rect
+						   recursive:NO
+							   style:style
+							withLink:link
+							   image:image];
+			return point;
 		}
 	}
-	
-	if (size.width <= rect.size.width && _currentPosition.x + size.width > rect.size.width) {
-		_currentPosition.y += size.height;
-		_currentPosition.x = 0;
+
+	if (size.width <= rect.size.width && point.x + size.width > rect.size.width) {
+		point.y += size.height;
+		point.x = 0;
 	}
-	
-	CGRect theRect = CGRectMake(_currentPosition.x, _currentPosition.y, size.width, size.height);
-		
-	if (link != nil || image != nil) {
+
+	CGRect theRect = CGRectMake(point.x, point.y, size.width, size.height);
+
+	if (link || image) {
 		CGContextRef context = UIGraphicsGetCurrentContext();
-		
-		if (style == SMFancyTextElementStyleLink) {
-			if ([_delegate respondsToSelector:@selector(fancyText:linkPressed:)]) {
-				
-				UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-				[button setFrame:theRect];
-				[button setTitle:link forState:UIControlStateNormal];
-				[button setTitleColor:[UIColor clearColor] forState:UIControlStateNormal];
-				[button addTarget:self action:@selector(linkTouchUp:) forControlEvents:UIControlEventTouchUpInside];
-				[button addTarget:self action:@selector(linkPressed:) forControlEvents:UIControlEventTouchDown];
-				[self addSubview:button];
-				
-				CGContextSetFillColorWithColor(context, [[UIColor colorWithRed:SMLinkRed / 255.0 green:SMLinkGreen / 255.0 blue:SMLinkBlue / 255.0 alpha:1] CGColor]);
-				CGContextFillRect(context, CGRectMake(_currentPosition.x, _currentPosition.y + (theRect.size.height - 2), theRect.size.width, 1));
-				[string drawInRect:theRect withFont:font];
-				CGContextSetFillColorWithColor(context, [self.textColor CGColor]);
-				
-			}
-		} else if (style == SMFancyTextElementStyleImage) {
-			
-			UIImage *theImage = [UIImage imageNamed:image];
-			[theImage drawInRect:CGRectMake((self.frame.size.width / 2) - (theImage.size.width / 2), _currentPosition.y, theImage.size.width, theImage.size.height)];
-			_currentPosition.y += theImage.size.height;
-			
-		} else if (style == SMFancyTextElementStyleImageLink) {
-			
-			UIImage *theImage = [UIImage imageNamed:image];
-			
-			CGRect imageFrame = CGRectMake((self.frame.size.width / 2) - (theImage.size.width / 2), _currentPosition.y, theImage.size.width, theImage.size.height);
-			[theImage drawInRect:imageFrame];
-			
-			UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-			[button setFrame:imageFrame];
-			[button setTitle:link forState:UIControlStateNormal];
-			[button setTitleColor:[UIColor clearColor] forState:UIControlStateNormal];
-			[button addTarget:_delegate action:@selector(linkPressed:) forControlEvents:UIControlEventTouchUpInside];
-			[self addSubview:button];
-			
-			_currentPosition.y += theImage.size.height;
-			
+
+		switch (style) {
+			case SMFancyTextElementStyleLink:
+				if ([_delegate respondsToSelector:@selector(fancyText:linkPressed:)]) {
+					
+					[self appendLinkWithText:string
+									 andLink:link
+								   withFrame:theRect
+									 andFont:font
+									 atPoint:point
+								   inContext:context];
+				}
+				break;
+			case SMFancyTextElementStyleImage:
+				point = [self appendImageWithName:image andLink:nil atPoint:point];
+				break;
+			case SMFancyTextElementStyleImageLink:
+				point = [self appendImageWithName:image andLink:link atPoint:point];
+				break;
+			default:
+				break;
 		}
 	} else {
 		[string drawInRect:theRect withFont:font];
 	}
-		
-	_currentPosition = CGPointMake(_currentPosition.x + size.width, _currentPosition.y);
+
+	return CGPointMake(point.x + size.width, point.y);
 }
 
 - (void)linkPressed:(UIButton *)button {
@@ -189,7 +233,7 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 }
 
 - (void)setText:(NSString *)newText {
-	
+
 	NSData *data = [[NSString stringWithFormat:@"<SMFancyText>%@</SMFancyText>", [newText stringByReplacingOccurrencesOfString:@"\n" withString:@""]] dataUsingEncoding:NSUTF8StringEncoding];
 
 	htmlParserCtxtPtr context = htmlCreatePushParserCtxt(&simpleSAXHandlerStruct, self, NULL, 0, NULL, XML_CHAR_ENCODING_UTF8);
@@ -238,32 +282,32 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 #pragma mark - LibXML
 
 void startElement(void *ctx, const xmlChar *name, const xmlChar **atts) {
-	
+
 	SMFancyText *textView = (SMFancyText *) ctx;
-	
+
 	if (textView.currentElement.style == SMFancyTextElementStyleLink && !strcmp((char *)name, "img")) {
 		textView.currentElement.style = SMFancyTextElementStyleImageLink;
-		
+
 		for (NSUInteger i = 0; i < sizeof(atts); ++i) {
 			if (!xmlStrcmp(atts[i], (unsigned char *)"src")) {
 				textView.currentElement.imageName = [NSString stringWithCString:(const char *) atts[i+1] encoding:NSUTF8StringEncoding];
 				break;
 			}
 		}
-			
+
 		return;
-		
+
 	} else if (textView.currentElement != nil) {
 		[textView saveCurrentElement];
 	}
-	
+
 	// first, insert newlines/paragraphs where needed
-	
+
 	if (!strcmp((char *)name, "blockquote") || !strcmp((char *)name, "img")) {
 		textView.currentElement = [SMFancyTextElement textElementWithStyle:SMFancyTextElementStyleNewLine];
 		[textView saveCurrentElement];
 	}
-	
+
 	SMFancyTextElement *element = [SMFancyTextElement textElement];
 
 	if (!xmlStrcmp(name, (unsigned char *)"strong") ||
@@ -280,7 +324,7 @@ void startElement(void *ctx, const xmlChar *name, const xmlChar **atts) {
 		element.style = SMFancyTextElementStyleBlockQuote;
 	} else if (!xmlStrcmp(name, (unsigned char *)"a")) {
 		element.style = SMFancyTextElementStyleLink;
-		
+
 		for (NSUInteger i = 0; i < sizeof(atts); ++i) {
 			if (!xmlStrcmp(atts[i], (unsigned char *)"href")) {
 				element.link = [NSString stringWithCString:(const char *) atts[i+1] encoding:NSUTF8StringEncoding];
@@ -289,7 +333,7 @@ void startElement(void *ctx, const xmlChar *name, const xmlChar **atts) {
 		}
 	} else if (!xmlStrcmp(name, (unsigned char *)"img")) {
 		element.style = SMFancyTextElementStyleImage;
-		
+
 		for (NSUInteger i = 0; i < sizeof(atts); ++i) {
 			if (!xmlStrcmp(atts[i], (unsigned char *)"src")) {
 				element.link = [NSString stringWithCString:(const char *) atts[i+1] encoding:NSUTF8StringEncoding];
@@ -297,15 +341,15 @@ void startElement(void *ctx, const xmlChar *name, const xmlChar **atts) {
 			}
 		}
 	}
-		
+
 	textView.currentElement = element;
 }
 
 void endElement(void *ctx, const xmlChar *name) {
-	
+
 	SMFancyText *textView = (SMFancyText *) ctx;
 	[textView saveCurrentElement];
-	
+
 	if (!xmlStrcmp(name, (unsigned char *)"p") ||
 		!xmlStrcmp(name, (unsigned char *)"li") ||
 		!xmlStrcmp(name, (unsigned char *)"ul")) {
@@ -318,11 +362,11 @@ void endElement(void *ctx, const xmlChar *name) {
 }
 
 void charactersFound(void *ctx, const xmlChar *ch, int len) {
-	
+
 	SMFancyText *textView = (SMFancyText *) ctx;
-	
+
 	if (!textView.currentElement) textView.currentElement = [SMFancyTextElement textElement];
-	
+
 	if (textView.currentElement.style == SMFancyTextElementStyleListItem) {
 		textView.currentElement.text = [NSString stringWithFormat:@"%@ %@", SMHTMLBullet, [NSString stringWithCString:(const char *) ch encoding:NSUTF8StringEncoding]];
 	} else {
@@ -336,7 +380,7 @@ void endDocument(void *ctx) {
 }
 
 void errorEncountered(void *ctx, const char *msg, ...) {
-	
+
 }
 
 static htmlSAXHandler simpleSAXHandlerStruct = {

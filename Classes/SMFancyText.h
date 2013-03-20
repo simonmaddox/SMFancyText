@@ -18,10 +18,7 @@
 
 @end
 
-@interface SMFancyText : UIView {
-@private
-	CGPoint _currentPosition;
-}
+@interface SMFancyText : UIView
 
 @property (nonatomic, retain) UIColor *textColor;
 @property (nonatomic, assign) id <SMFancyTextDelegate> delegate;
