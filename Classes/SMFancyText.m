@@ -207,7 +207,7 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 
 	for (NSInteger i = 0; i < string.length; ++i) {
 		if ([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[mutableString characterAtIndex:i]]) {
-			whitespaceCount = i;
+			whitespaceCount = i + 1;
 		} else {
 			break;
 		}
