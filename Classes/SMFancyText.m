@@ -190,7 +190,7 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 		point.x = 0;
 	}
 
-	CGRect theRect = CGRectMake(point.x, point.y, size.width, size.height);
+	CGRect frame = CGRectMake(point.x, point.y, size.width, size.height);
 
 	if (link || image) {
 		CGContextRef context = UIGraphicsGetCurrentContext();
@@ -201,7 +201,7 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 					
 					[self appendLinkWithText:string
 									 andLink:link
-								   withFrame:theRect
+								   withFrame:frame
 									 andFont:font
 									 atPoint:point
 								   inContext:context];
@@ -217,7 +217,7 @@ static xmlSAXHandler simpleSAXHandlerStruct;
 				break;
 		}
 	} else {
-		[string drawInRect:theRect withFont:font];
+		[string drawInRect:frame withFont:font];
 	}
 
 	return CGPointMake(point.x + size.width, point.y);
